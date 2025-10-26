@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>microGravity</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+    <link rel="stylesheet" href="./styles/base.css">
+    <link rel="stylesheet" href="./styles/vendor/katex.min.css">
+    <link rel="stylesheet" href="./styles/vendor/github.min.css">
+</head>
+<body>
+    <div class="topbar">
+        <div class="title">untitled.md</div>
+        <div class="actions">
+            <button id="themeBtn" title="Toggle theme">Theme</button>
+            <button id="viewBtn" title="Toggle view">View</button>
+        </div>
+    </div>
+
+    <div id="app" class="layout">
+        <textarea id="editor" placeholder="Start typing..."></textarea>
+        <div id="preview" class="preview"></div>
+    </div>
+
+    <div class="statusbar">
+        <div id="statusLeft">Words: 0</div>
+        <div id="statusRight">Line 1, Col 1</div>
+    </div>
+
+    <script type="module" src="./js/renderer.bundle.js"></script>
+</body>
+</html>

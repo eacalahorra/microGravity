@@ -1,0 +1,30 @@
+{
+  "name": "microgravity",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "bundle": "esbuild src/js/renderer.js --bundle --platform=browser --format=esm --outfile=src/js/renderer.bundle.js"
+  },
+  "author": "eacalahorra",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "electron": "^38.4.0",
+    "esbuild": "^0.25.11"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.25",
+    "mermaid": "^11.12.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
+    "rehype-stringify": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
+  }
+}
