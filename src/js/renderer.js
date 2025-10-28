@@ -1,4 +1,4 @@
-//mG v0.1.0 by eacalahorra - GPLv3 - 2025 - Contains: Basic Layout, Themes and View Toggles; Live Status Bar; Raw Preview Mirror
+//mG v0.1.0 by eacalahorra - GPLv3 - 2025
 //Work In Progress
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
