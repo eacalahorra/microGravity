@@ -19,7 +19,6 @@ function addCss (href) {
 }
 
 addCss('./vendor/katex.min.css');
-addCss('./vendor/github.min.css');
 
 const md = unified()
 .use(remarkParse)
@@ -52,6 +51,27 @@ mermaid.initialize({
 function applyTheme() {
     body.classList.remove('light', 'dark');
     body.classList.add(theme);
+    localStorage.setItem('mg.theme', theme);
+
+    const links = head.querySelectorAll('link[data-hljs]');
+    links.forEach( l => l.remove());
+
+    const hlTheme = theme === 'dark'
+    ? './vendor/github-dark.min.css'
+    : './vendor/github.min.css';
+
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = hlTheme;
+    link.dataset.hljs = 'true';
+    head.appendChild(link);
+
+    mermaid.initialize({
+        startOnLoad: false,
+        securityLevel: 'strict',
+        theme: theme === 'dark' ? 'dark' : 'default'
+    });
+    renderPreviewDebounced();
 }
 
 function updateWordCount() {
@@ -73,6 +93,9 @@ function updateCursorPos() {
 }
 
 async function renderPreview() {
+
+    console.log('Rendering preview at', new Date().toISOString());
+
     try {
         const file = await md.process(editor.value);
         preview.innerHTML = String(file);
@@ -98,6 +121,17 @@ async function renderPreview() {
         preview.innerHTML = `<pre>${String(err)}</pre>`
     }
 }
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+
+const renderPreviewDebounced = debounce(renderPreview, 150);
+
 
 themeBtn.addEventListener('click', () => {
     theme = theme === 'light' ? 'dark' : 'light';
@@ -132,7 +166,12 @@ viewBtn.addEventListener('click', () => {
     applyView();
 });
 
-editor.addEventListener('input', () => {updateWordCount(); updateCursorPos(); renderPreview(); });
+editor.addEventListener('input', () => {
+    updateWordCount(); 
+    updateCursorPos(); 
+    if (typeof updateTitleFromContent === 'function') updateTitleFromContent();
+    renderPreviewDebounced(); 
+});
 editor.addEventListener('keyup', updateCursorPos);
 editor.addEventListener('click', updateCursorPos);
 

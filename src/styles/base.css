@@ -128,3 +128,12 @@ body{
 
 .preview .mermaid { overflow-x: auto; padding: 8px 0;}
 .preview .mermaid svg { max-width: 100%; height: auto; }
+
+.acrions button:hover {
+    background: var(--border);
+    transition: background-color 0.2s ease;
+}
+
+textarea, .preview {
+    scrollbar-width: thin;
+}
