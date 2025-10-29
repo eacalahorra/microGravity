@@ -39,14 +39,8 @@ const statusLeft = document.getElementById('statusLeft');
 const statusRight = document.getElementById('statusRight');
 
 // default settings
-let theme = 'light'; //light theme gang
-let view = 'sourceOnly'; //refers to view mirror :)
-
-mermaid.initialize({
-    startOnLoad: false,
-    securityLevel: 'strict',
-    theme: theme === 'dark' ? 'dark' : "default"
-});
+let theme = localStorage.getItem('mg.theme') || 'light';
+let view = localStorage.getItem('mg.view') || 'sourceOnly';
 
 function applyTheme() {
     body.classList.remove('light', 'dark');
@@ -69,8 +63,26 @@ function applyTheme() {
     mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
-        theme: theme === 'dark' ? 'dark' : 'default'
+        theme: theme === 'dark' ? 'dark' : 'default',
+        themeVariables: theme === 'dark' ? {
+            darkMode: true,
+            primaryColor: '#3b82f6',      
+            primaryTextColor: '#e7ecf3',  
+            primaryBorderColor: '#60a5fa', 
+            lineColor: '#93c5fd',         
+            secondaryColor: '#8b5cf6',    
+            tertiaryColor: '#10b981',     
+            background: '#1f2937',        
+            mainBkg: '#1f2937',
+            textColor: '#e7ecf3',
+            nodeBorder: '#60a5fa',
+            clusterBkg: '#374151',
+            clusterBorder: '#60a5fa',
+            edgeLabelBackground: '#1f2937',
+            arrowheadColor: '#93c5fd'     
+        } : {}
     });
+
     renderPreviewDebounced();
 }
 
@@ -82,6 +94,7 @@ function updateWordCount() {
 function applyView() {
     app.classList.remove('sourceOnly', 'split', 'previewOnly');
     app.classList.add(view);
+    localStorage.setItem('mg.view', view);
 }
 
 function updateCursorPos() {
@@ -136,35 +149,20 @@ const renderPreviewDebounced = debounce(renderPreview, 150);
 themeBtn.addEventListener('click', () => {
     theme = theme === 'light' ? 'dark' : 'light';
     applyTheme();
-    mermaid.initialize({ //this took forever to figure out, jeez louise :)
-        startOnLoad: false,
-        securityLevel: 'strict',
-        theme: theme === 'dark' ? 'dark' : 'default',
-        themeVariables: theme === 'dark' ? {
-        darkMode: true,
-        primaryColor: '#3b82f6',      
-        primaryTextColor: '#e7ecf3',  
-        primaryBorderColor: '#60a5fa', 
-        lineColor: '#93c5fd',         
-        secondaryColor: '#8b5cf6',    
-        tertiaryColor: '#10b981',     
-        background: '#1f2937',        
-        mainBkg: '#1f2937',
-        textColor: '#e7ecf3',
-        nodeBorder: '#60a5fa',
-        clusterBkg: '#374151',
-        clusterBorder: '#60a5fa',
-        edgeLabelBackground: '#1f2937',
-        arrowheadColor: '#93c5fd'     
-    } : {}
-    });
-    renderPreview();
 });
 
 viewBtn.addEventListener('click', () => {
     view = view === 'sourceOnly' ? 'split' : view === 'split' ? 'previewOnly' : 'sourceOnly';
     applyView();
 });
+
+const titleEl = document.querySelector('.title');
+
+function updateTitleFromContent() {
+    const firstLine = (editor.value.split('\n')[0] || '').trim();
+    const match = firstLine.match(/^#\s+(.+)$/);
+    titleEl.textContent = match ? `${match[1]}.md` : 'untitled.md';
+}
 
 editor.addEventListener('input', () => {
     updateWordCount(); 
