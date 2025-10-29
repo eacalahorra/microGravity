@@ -52,22 +52,7 @@ const notesOverlay = document.getElementById('notesOverlay');
 const notesClose = document.getElementById('notesClose');
 const notesArea = document.getElementById('notesArea');
 
-btnBold?.addEventListener('click',  () => withSelection(wrapInline('**')));
-btnItalic?.addEventListener('click',() => withSelection(wrapInline('*')));
 
-btnH1?.addEventListener('click',    () => withSelection(toggleLinePrefix('# ')));
-btnH2?.addEventListener('click',    () => withSelection(toggleLinePrefix('## ')));
-btnH3?.addEventListener('click',    () => withSelection(toggleLinePrefix('### ')));
-
-btnBullet?.addEventListener('click',() => withSelection(toggleLinePrefix('- ')));
-btnNumber?.addEventListener('click',() => withSelection(toggleLinePrefix('1. ')));
-
-btnQuote?.addEventListener('click', () => withSelection(toggleLinePrefix('> ')));
-btnCode?.addEventListener('click',  () => withSelection(wrapBlock('```')));
-
-btnLink?.addEventListener('click',  () => withSelection(insertLink()));
-
-// default settings
 let theme = localStorage.getItem('mg.theme') || 'light';
 let view = localStorage.getItem('mg.view') || 'sourceOnly';
 
@@ -209,20 +194,62 @@ function withSelection(transform) {
     editor.focus();
     const start = editor.selectionStart, end = editor.selectionEnd;
     const val = editor.value, sel = val.slice(start, end);
-    const { text, newStart = start, newEnd = start + (transform(sel).length) } = 
-        transform({sel, start, end, val}) || {};
-    if (typeof text === 'string') {
-        editor.value = val.slice(0, start) + text + val.slice(end);
-        editor.selectionStart = newStart;
-        editor.selectionEnd = newEnd;
-        updateWordCount(); updateCursorPos(); updateTitleFromContent?.(); renderPreviewDebounced();
+
+    const result = transform({sel, start, end, val});
+
+    if (result && typeof result.text === 'string') {
+
+        const replaceStart = result.replaceStart ?? start;
+        const replaceEnd = result.replaceEnd ?? end;
+
+        if (result.isLineOp) {
+            const before = val.slice(0, start);
+            const lineStart = before.lastIndexOf('\n') + 1;
+            const lineEnd = val.indexOf('\n', end);
+            const actualEnd = lineEnd === -1 ? val.length : lineEnd;
+        
+            editor.value = val.slice(0, lineStart) + result.text + val.slice(actualEnd);
+        } else {
+            editor.value = val.slice(0, replaceStart) + result.text + val.slice(replaceEnd);
+        }
+
+        editor.selectionStart = result.newStart ?? start;
+        editor.selectionEnd = result.newEnd ?? end;
+
+        updateWordCount();
+        updateCursorPos();
+        updateTitleFromContent();
+        renderPreviewDebounced();
     }
 }
 
 function wrapInline(mark) {
-    return ({ sel, start, end }) => {
-        const text = `${mark}${sel || ''}$mark`;
-        return {text, newStart: start + mark.length, newEnd: end + mark.length};
+    return ({ sel, start, end, val }) => {
+        const before = val.slice(Math.max(0, start - mark.length), start);
+        const after = val.slice(end, end + mark.length);
+        
+        if (before === mark && after === mark) {
+            const text = sel;
+            const adjustedStart = start - mark.length;  
+            const adjustedEnd = end + mark.length;      
+            
+            return {
+                text,
+                newStart: start - mark.length,
+                newEnd: end - mark.length,
+                isLineOp: false,
+                replaceStart: adjustedStart,  
+                replaceEnd: adjustedEnd        
+            };
+        } else {
+            const text = `${mark}${sel || ''}${mark}`;
+            return {
+                text, 
+                newStart: start + mark.length, 
+                newEnd: end + mark.length,
+                isLineOp: false
+            };
+        }
     };
 }
 
@@ -230,13 +257,17 @@ function toggleLinePrefix(prefix) {
     return ({ sel, start, end, val }) => {
         const before = val.slice(0, start);
         const lineStart = before.lastIndexOf('\n') + 1;
-        const segment = val.slice(lineStart, end);
+        const lineEnd = val.indexOf('\n', end);
+        const actualEnd = lineEnd === -1 ? val.length :lineEnd;
+        const segment = val.slice(lineStart, actualEnd);
         const lines = segment.split('\n').map(l => {
          return l.startsWith(prefix) ? l.slice(prefix.length) : (prefix + l);
      });
         const text = lines.join('\n');
         const delta = text.length - segment.length;
-        return { text: val.slice(lineStart, start) + text + val.slice(end), newStart: start, newEnd: end + delta };
+        const newStart = start + (val.slice(lineStart, start).length > 0 ? delta : 0)
+        const newEnd = end + delta;
+        return { text, newStart, newEnd, isLineOp: true };
     };
 }
 
@@ -245,11 +276,35 @@ function insertLink() {
         const label = sel || 'link text';
         const url = 'https://';
         const text = `[${label}](${url})`;
-        return { text };
+        return { text, isLineOp: false };
+    };
+}
+
+function wrapBlock(mark) {
+    return ({ sel, start, end, val}) => {
+        const text = `${mark}\n${sel || ''}\n${mark}`;
+        const newStart = start + mark.length + 1;
+        const newEnd = newStart + (sel?.length || 0);
+        return { text, newStart, newEnd }
     };
 }
 
 let sessionNotes = '';
+
+btnBold?.addEventListener('click',  () => withSelection(wrapInline('**')));
+btnItalic?.addEventListener('click',() => withSelection(wrapInline('*')));
+
+btnH1?.addEventListener('click',    () => withSelection(toggleLinePrefix('# ')));
+btnH2?.addEventListener('click',    () => withSelection(toggleLinePrefix('## ')));
+btnH3?.addEventListener('click',    () => withSelection(toggleLinePrefix('### ')));
+
+btnBullet?.addEventListener('click',() => withSelection(toggleLinePrefix('- ')));
+btnNumber?.addEventListener('click',() => withSelection(toggleLinePrefix('1. ')));
+
+btnQuote?.addEventListener('click', () => withSelection(toggleLinePrefix('> ')));
+btnCode?.addEventListener('click',  () => withSelection(wrapBlock('```')));
+
+btnLink?.addEventListener('click',  () => withSelection(insertLink()));
 
 btnNotes?.addEventListener('click', () => {
   const hidden = notesOverlay.hasAttribute('hidden');
