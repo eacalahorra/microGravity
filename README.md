@@ -23,13 +23,13 @@ As of 27/10/2025, the state of development is as follows.
 | Feature Class | Feature Type          | Development Tier            |
 | ------------- | --------------------- | --------------------------- |
 | A             | Basic Functioning     | 4 (Completed)               |
-| B             | Integrated Markdown Engine       | 3.7 (Near Completion)       |
+| B             | Integrated Markdown Engine       | 4 (Completed)       |
 | C             | Additional Features   | 1 (Initial Implementation)  |
-| D             | Client Core Functions | 0 (In Planning)             |
-| PT            | Pretty Things (UI/UX) | 1.2 (Initial Implementation) |
-| N             | Niceties (QoL)        | 2 (Active Development)      |
+| D             | Client Core Functions | 1 (Initial Implementation)             |
+| PT            | Pretty Things (UI/UX) | 0 (In Planning) |
+| N             | Niceties (QoL)        | 2.3 (Active Development)      |
 
-As development continues ***microGravity version 0.1.0***, Working Title *"Please Break Me"*, will be publicly released.
+As development continues ***microGravity version 0.1.0***, Working Title *"Please Break Me"*, will be publicly released. This may be preceeded by ***microGravity version 0.0.1alpha*** "minimum viable product".
 
 ```
 Legend: 
