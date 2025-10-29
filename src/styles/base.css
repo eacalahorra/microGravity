@@ -23,23 +23,61 @@ body{
     font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, ui-sans-serif, system-ui, sans-serif;
 }
 
-.topbar, .statusbar {
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.topbar .title {
+  flex: 1;
+  text-align: center;              
+  font-weight: 600;
+}
+.split .topbar .title,
+.previewOnly .topbar .title {
+  text-align: left;                
+}
+
+.topbar .toolbar {
+  display: none;                   
+  align-items: center;
+  gap: 6px;
+}
+.split .topbar .toolbar,
+.previewOnly .topbar .toolbar {
+  display: flex;                   
+}
+
+.toolbar .sep { width: 1px; height: 22px; background: var(--border); }
+.toolbar .spacer { width: 12px; }  
+.topbar .toolbar button {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.topbar .toolbar button:hover { background: rgba(127,127,127,0.08); }
+.dark .topbar .toolbar button:hover { background: rgba(255,255,255,0.08); }
+
+
+.statusbar{
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
     background: var(--panel);
-    border-bottom: 1px solid var(--border)
-}
-
-.statusbar{
     position: fixed;
     bottom: 0; left: 0; right: 0;
     border-top: 1px solid var(--border);
     border-bottom: none;
 }
-
-.title { font-weight: 600; color: var(--muted); }
 
 .actions button {
     margin-left: 8px;
@@ -136,4 +174,62 @@ body{
 
 textarea, .preview {
     scrollbar-width: thin;
+}
+
+#notesOverlay {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 360px;
+  height: 280px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  z-index: 50;
+}
+#notesOverlay[hidden] { display: none; }
+
+#notesOverlay .notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+#notesOverlay .notes-header button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+#notesArea {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: none; 
+}
+
+
+.notes-resize-handle {
+  position: absolute;
+  width: 12px; height: 12px;
+  right: 6px; bottom: 6px;
+  border-right: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  pointer-events: none;
 }

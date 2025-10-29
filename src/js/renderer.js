@@ -37,6 +37,35 @@ const themeBtn = document.getElementById('themeBtn');
 const viewBtn = document.getElementById('viewBtn');
 const statusLeft = document.getElementById('statusLeft');
 const statusRight = document.getElementById('statusRight');
+const btnBold = document.getElementById('btnBold')
+const btnItalic = document.getElementById('btnItalic');
+const btnH1     = document.getElementById('btnH1');
+const btnH2     = document.getElementById('btnH2');
+const btnH3     = document.getElementById('btnH3');
+const btnBullet = document.getElementById('btnBullet');
+const btnNumber = document.getElementById('btnNumber');
+const btnQuote  = document.getElementById('btnQuote');
+const btnCode   = document.getElementById('btnCode');
+const btnLink   = document.getElementById('btnLink');
+const btnNotes  = document.getElementById('btnNotes');
+const notesOverlay = document.getElementById('notesOverlay');
+const notesClose = document.getElementById('notesClose');
+const notesArea = document.getElementById('notesArea');
+
+btnBold?.addEventListener('click',  () => withSelection(wrapInline('**')));
+btnItalic?.addEventListener('click',() => withSelection(wrapInline('*')));
+
+btnH1?.addEventListener('click',    () => withSelection(toggleLinePrefix('# ')));
+btnH2?.addEventListener('click',    () => withSelection(toggleLinePrefix('## ')));
+btnH3?.addEventListener('click',    () => withSelection(toggleLinePrefix('### ')));
+
+btnBullet?.addEventListener('click',() => withSelection(toggleLinePrefix('- ')));
+btnNumber?.addEventListener('click',() => withSelection(toggleLinePrefix('1. ')));
+
+btnQuote?.addEventListener('click', () => withSelection(toggleLinePrefix('> ')));
+btnCode?.addEventListener('click',  () => withSelection(wrapBlock('```')));
+
+btnLink?.addEventListener('click',  () => withSelection(insertLink()));
 
 // default settings
 let theme = localStorage.getItem('mg.theme') || 'light';
@@ -92,8 +121,12 @@ function updateWordCount() {
 }
 
 function applyView() {
+    body.classList.remove('sourceOnly', 'split', 'previewOnly');
+    body.classList.add(view);
     app.classList.remove('sourceOnly', 'split', 'previewOnly');
     app.classList.add(view);
+    const toolbar = document.getElementById('toolbar');
+    toolbar.toggleAttribute('hidden', !(view === 'split' || view === 'previewOnly'));
     localStorage.setItem('mg.view', view);
 }
 
@@ -159,10 +192,91 @@ viewBtn.addEventListener('click', () => {
 const titleEl = document.querySelector('.title');
 
 function updateTitleFromContent() {
-    const firstLine = (editor.value.split('\n')[0] || '').trim();
-    const match = firstLine.match(/^#\s+(.+)$/);
-    titleEl.textContent = match ? `${match[1]}.md` : 'untitled.md';
+    const lines = editor.value.split('\n');
+
+    for (const line of lines) {
+        const match = line.trim().match(/^#\s+(.+)$/);
+        if (match) {
+            titleEl.textContent = `${match[1]}.md`;
+            return;
+        }
+    }
+
+    titleEl.textContent = 'untitled.md'
 }
+
+function withSelection(transform) {
+    editor.focus();
+    const start = editor.selectionStart, end = editor.selectionEnd;
+    const val = editor.value, sel = val.slice(start, end);
+    const { text, newStart = start, newEnd = start + (transform(sel).length) } = 
+        transform({sel, start, end, val}) || {};
+    if (typeof text === 'string') {
+        editor.value = val.slice(0, start) + text + val.slice(end);
+        editor.selectionStart = newStart;
+        editor.selectionEnd = newEnd;
+        updateWordCount(); updateCursorPos(); updateTitleFromContent?.(); renderPreviewDebounced();
+    }
+}
+
+function wrapInline(mark) {
+    return ({ sel, start, end }) => {
+        const text = `${mark}${sel || ''}$mark`;
+        return {text, newStart: start + mark.length, newEnd: end + mark.length};
+    };
+}
+
+function toggleLinePrefix(prefix) {
+    return ({ sel, start, end, val }) => {
+        const before = val.slice(0, start);
+        const lineStart = before.lastIndexOf('\n') + 1;
+        const segment = val.slice(lineStart, end);
+        const lines = segment.split('\n').map(l => {
+         return l.startsWith(prefix) ? l.slice(prefix.length) : (prefix + l);
+     });
+        const text = lines.join('\n');
+        const delta = text.length - segment.length;
+        return { text: val.slice(lineStart, start) + text + val.slice(end), newStart: start, newEnd: end + delta };
+    };
+}
+
+function insertLink() {
+    return ({sel}) => {
+        const label = sel || 'link text';
+        const url = 'https://';
+        const text = `[${label}](${url})`;
+        return { text };
+    };
+}
+
+let sessionNotes = '';
+
+btnNotes?.addEventListener('click', () => {
+  const hidden = notesOverlay.hasAttribute('hidden');
+  if (hidden) {
+    notesOverlay.removeAttribute('hidden');
+    notesArea.value = sessionNotes;
+    notesArea.focus();
+  } else {
+    notesOverlay.setAttribute('hidden', '');
+  }
+});
+
+notesClose?.addEventListener('click', () => notesOverlay.setAttribute('hidden',''));
+notesArea?.addEventListener('input', () => { sessionNotes = notesArea.value; });
+
+
+notesOverlay.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') notesOverlay.setAttribute('hidden','');
+});
+
+
+(function updateToolbarHidden() {
+  const toolbar = document.getElementById('toolbar');
+  const show = (view === 'split' || view === 'previewOnly');
+  toolbar.toggleAttribute('hidden', !show);
+})();
+
 
 editor.addEventListener('input', () => {
     updateWordCount(); 

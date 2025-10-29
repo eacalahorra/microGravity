@@ -3,18 +3,46 @@
 <head>
     <meta charset="utf-8" />
     <title>microGravity</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: http: data; connect-src 'self;">
+    <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: http: data:; connect-src 'self;">
     <link rel="stylesheet" href="./styles/base.css">
-    <link rel="stylesheet" href="./styles/vendor/katex.min.css">
-    <link rel="stylesheet" href="./styles/vendor/github.min.css">
 </head>
 <body>
     <div class="topbar">
         <div class="title">untitled.md</div>
+        
+        <div id="toolbar" class="toolbar" role="toolbar" aria-label="Formatting">
+            <button id="btnBold"     title="Bold (Ctrl+B)"><b>B</b></button>
+            <button id="btnItalic"   title="Italic (Ctrl+I)"><i>I</i></button>
+            <span class="sep"></span>
+            <button id="btnH1"       title="Heading 1">H1</button>
+            <button id="btnH2"       title="Heading 2">H2</button>
+            <button id="btnH3"       title="Heading 3">H3</button>
+            <span class="sep"></span>
+            <button id="btnBullet"   title="Bulleted list">•</button>
+            <button id="btnNumber"   title="Numbered list">1.</button>
+            <button id="btnQuote"    title="Block quote">❝</button>
+            <button id="btnCode"     title="Code block">{ }</button>
+            <span class="sep"></span>
+            <button id="btnLink"     title="Link (Ctrl+K)">🔗</button>
+            <span class="spacer"></span>
+        </div>
+        
         <div class="actions">
             <button id="themeBtn" title="Toggle theme">Theme</button>
             <button id="viewBtn" title="Toggle view">View</button>
+            <button id="btnNotes"    title="Session notes (no save)">Notes</button>
         </div>
+
+    </div>
+
+    <div id="notesOverlay" hidden>
+        <div class="notes-header">
+            <strong>Session Notes</strong>
+            <button id="notesClose" title="Close">✕</button>
+        </div>
+        <textarea id="notesArea" spellcheck="false" placeholder="These notes are not saved."></textarea>
+        <div class="notes-resize-handle" aria-hidden="true"></div>
     </div>
 
     <div id="app" class="layout">
