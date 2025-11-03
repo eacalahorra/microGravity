@@ -6,7 +6,9 @@
 
 ## What is microGravity?
 
-microGravity is a small, offline, self-contained simple Markdown Editor based on **Electron/Node.js**. Currently this project is ***under development*** and has no working app.
+microGravity is a small, offline, self-contained simple Markdown Editor based on **Electron/Node.js**. Currently this project is ***under development***. 
+
+### Make sure to try microGravity v0.0.1α! Now released!
 
 ## Why microGravity?
 
@@ -18,24 +20,23 @@ This project is free and open, licensed under GPL v3.0+, and will be available a
 
 Because this project aims to be usable as a day-to-day system, it presents all main markdown features offered in other comparable editors such as [Typora](https://typora.io) and [iA Writer](https://ia.net/writer), as well as LaTeX compatibility via [KaTeX](https://katex.org) and flowchart capabilities via [Mermaid](https://mermaid.js.org).
 
-As of 29/10/2025, the state of development is as follows.
+As of 4/11/2025, the state of development is as follows.
 
 | Feature Class | Feature Type          | Development Tier            |
 | ------------- | --------------------- | --------------------------- |
 | A             | Basic Functioning     | 4 (Completed)               |
 | B             | Integrated Markdown Engine       | 4 (Completed)       |
-| C             | Additional Features   | 1 (Initial Implementation)  |
-| D             | Client Core Functions | 3 (Near Completion)             |
+| C             | Additional Features   | 3.9 (Near Completion)  |
+| D             | Client Core Functions | 4 (Completed)             |
 | PT            | Pretty Things (UI/UX) | 0 (In Planning) |
-| N             | Niceties (QoL)        | 2.6 (Active Development)      |
-
-As development continues ***microGravity version 0.1.0***, Working Title *"Please Break Me"*, will be publicly released. This may be preceeded by ***microGravity version 0.0.1alpha*** "minimum viable product".
+| N             | Niceties (QoL)        | 3.5 (Near Completion)      |
 
 ```
 Legend: 
  - 0 - In Planning: the feature/tier is currently being sketched out on paper.
  - 1 - Initial Implementation: Let's make it work, the feature is being roughly made.
- - 2 - Active Development: The feature is being integrated to all pre-existent systems, ensuring the correct functioning - 3 - Near Completion: The feature is being polished to ensure compliance with all my Shippable Product (SP) standards
+ - 2 - Active Development: The feature is being integrated to all pre-existent systems, ensuring the correct functioning 
+ - 3 - Near Completion: The feature is being polished to ensure compliance with all my Shippable Product (SP) standards
  - 4 - Completed: What it says in the can.
 ```
 ---
