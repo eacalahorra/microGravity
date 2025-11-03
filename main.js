@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain} from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu } from "electron";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
@@ -9,46 +9,79 @@ const __dirname = path.dirname(__filename);
 let win;
 let welcomeWin;
 
-function createMainWindow() {
-     win = new BrowserWindow({
-        width: 1100,
-        height: 720,
-        minWidth: 900,
-        minHeight: 600,
-        title: "microGravity",
-        backgroundColor: "#11161C",
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            preload: path.join(__dirname, "preload.js")
-        }
-     });
 
-     win.loadFile(path.join(__dirname, "src", "index.html"));
+Menu.setApplicationMenu(null);
+
+function disableDevShortcuts(targetWin) {
+  if (!targetWin) return;
+  targetWin.webContents.on("before-input-event", (event, input) => {
+    const key = input.key.toLowerCase();
+
+    if (
+      (input.control && input.shift && (key === "i" || key === "j")) ||
+      (input.control && key === "r") ||
+      key === "f5" ||
+      key === "f12"
+    ) {
+      event.preventDefault();
+    }
+  });
+
+  targetWin.webContents.on("devtools-opened", () => {
+    targetWin.webContents.closeDevTools();
+  });
+}
+
+function createMainWindow() {
+  win = new BrowserWindow({
+    width: 1100,
+    height: 720,
+    minWidth: 900,
+    minHeight: 600,
+    title: "microGravity",
+    backgroundColor: "#11161C",
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      preload: path.join(__dirname, "preload.js")
+    }
+  });
+
+  win.loadFile(path.join(__dirname, "src", "index.html"));
+  disableDevShortcuts(win);
 }
 
 function createWelcomeWindow() {
-    welcomeWin = new BrowserWindow({
-        width: 1024,
-        height: 576,
-        resizable: false,
-        maximizable: false,
-        minimizable: false,
-        title: "Welcome to microGravity",
-        backgroundColor: "#000000",
-        webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false  
-        }
-    });
+  welcomeWin = new BrowserWindow({
+    width: 1024,
+    height: 576,
+    resizable: false,
+    maximizable: true,
+    minimizable: false,
+    title: "Welcome to microGravity",
+    backgroundColor: "#000000",
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  });
 
-    welcomeWin.loadFile(path.join(__dirname, "src", "welcome.html"))
+  welcomeWin.loadFile(path.join(__dirname, "src", "welcome.html"));
+  disableDevShortcuts(welcomeWin);
+
+welcomeWin.webContents.on("before-input-event", (event, input) => {
+  if (input.key === "F11") {
+    event.preventDefault();
+    welcomeWin.setFullScreen(!welcomeWin.isFullScreen());
+  }
+});
+
 }
 
 app.whenReady().then(() => {
   const storePath = path.join(app.getPath("userData"), "mg-settings.json");
   let hasSeenWelcome = false;
-  
+
   try {
     if (fs.existsSync(storePath)) {
       const data = JSON.parse(fs.readFileSync(storePath, "utf-8"));
@@ -57,22 +90,17 @@ app.whenReady().then(() => {
   } catch (err) {
     console.warn("Could not read mg-settings.json:", err);
   }
-  
-  if (!hasSeenWelcome) {
-    createWelcomeWindow();
-  } else {
-    createMainWindow();
-  }
-});
 
+  if (!hasSeenWelcome) createWelcomeWindow();
+  else createMainWindow();
+});
 
 ipcMain.on("welcome:close", (event, dontShowAgain) => {
   if (welcomeWin) {
     welcomeWin.close();
     welcomeWin = null;
   }
-  
-  
+
   if (dontShowAgain) {
     try {
       const storePath = path.join(app.getPath("userData"), "mg-settings.json");
@@ -81,30 +109,30 @@ ipcMain.on("welcome:close", (event, dontShowAgain) => {
       console.warn("Failed to save settings:", err);
     }
   }
-  
+
   createMainWindow();
 });
 
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
+  if (process.platform !== "darwin") app.quit();
 });
 
 app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
 });
 
 ipcMain.handle("file:open", async () => {
-    const targetWin = win || welcomeWin;
-    const { canceled, filePaths } = await dialog.showOpenDialog(targetWin, {
-        title: "Open Markdown",
-        filters: [{ name: "Markdown", extensions: ["md", "markdown", "txt"]}],
-        properties: ["openFile"]
-    });
-    if (canceled || !filePaths?.length) return null;
+  const targetWin = win || welcomeWin;
+  const { canceled, filePaths } = await dialog.showOpenDialog(targetWin, {
+    title: "Open Markdown",
+    filters: [{ name: "Markdown", extensions: ["md", "markdown", "txt"] }],
+    properties: ["openFile"]
+  });
+  if (canceled || !filePaths?.length) return null;
 
-    const filePath = filePaths[0];
-    const content = fs.readFileSync(filePath, "utf-8");
-    return { path: filePath, content };
+  const filePath = filePaths[0];
+  const content = fs.readFileSync(filePath, "utf-8");
+  return { path: filePath, content };
 });
 
 ipcMain.handle("file:save", async (_e, { path: filePath, content }) => {
@@ -125,26 +153,24 @@ ipcMain.handle("file:saveAs", async (_e, { content, suggestedName }) => {
   return { path: filePath };
 });
 
-ipcMain.handle("file:exportPdf", async (_e, { html, theme, title}) => {
-    const targetWin = win || welcomeWin;
-    const { canceled, filePath } = await dialog.showSaveDialog(targetWin, {
-        title: "Export PDF",
-        defaultPath: (title || "untitled") + ".pdf",
-        filters: [{ name: "PDF", extensions: ["pdf"] }]
-    });
-    if (canceled || !filePath) return null;
+ipcMain.handle("file:exportPdf", async (_e, { html, theme, title }) => {
+  const targetWin = win || welcomeWin;
+  const { canceled, filePath } = await dialog.showSaveDialog(targetWin, {
+    title: "Export PDF",
+    defaultPath: (title || "untitled") + ".pdf",
+    filters: [{ name: "PDF", extensions: ["pdf"] }]
+  });
+  if (canceled || !filePath) return null;
 
-    const pdfWin = new BrowserWindow({
-        show: false,
-        width: 900,
-        height: 1200,
-        webPreferences: {
-            offscreen: true
-        }
-    });
+  const pdfWin = new BrowserWindow({
+    show: false,
+    width: 900,
+    height: 1200,
+    webPreferences: { offscreen: true }
+  });
 
-const cssRel = (p) => "file://" + path.join(__dirname, "src", p).replace(/\\/g, "/");
-const htmlDoc = `
+  const cssRel = (p) => "file://" + path.join(__dirname, "src", p).replace(/\\/g, "/");
+  const htmlDoc = `
     <!doctype html>
     <html>
     <head>
@@ -154,7 +180,6 @@ const htmlDoc = `
       <link rel="stylesheet" href="${cssRel("vendor/katex.min.css")}">
       <link rel="stylesheet" href="${cssRel(theme === "dark" ? "vendor/github-dark.min.css" : "vendor/github.min.css")}">
       <style>
-        /* Print: hide editor/status/topbar, render only preview body area */
         body { margin: 24px; }
         #print { white-space: pre-wrap; }
         .topbar, .statusbar { display: none !important; }
@@ -165,9 +190,8 @@ const htmlDoc = `
     <body class="${theme === "dark" ? "dark" : "light"}">
       <div id="print" class="preview">${html}</div>
     </body>
-    </html>
-  `;
-
+    </html>`;
+  
   await pdfWin.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(htmlDoc));
   const pdf = await pdfWin.webContents.printToPDF({
     marginsType: 1,

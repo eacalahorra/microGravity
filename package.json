@@ -1,17 +1,43 @@
 {
   "name": "microgravity",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "main": "main.js",
-  "scripts": {
-    "dev": "electron .",
-    "bundle": "esbuild src/js/renderer.js --bundle --platform=browser --format=esm --external:electron --outfile=src/js/renderer.bundle.js"
-  },
+  "version": "0.0.1",
+  "description": "A minimalist Markdown editor built with Electron.",
   "author": "eacalahorra",
   "license": "GPL-3.0-or-later",
+  "type": "module",
+  "main": "main.js",
+  "private": true,
+
+"scripts": {
+  "start": "electron .",
+  "dev": "electron .",
+  "bundle": "esbuild src/js/renderer.js --bundle --platform=browser --format=esm --external:electron --outfile=src/js/renderer.bundle.js",
+  "build": "electron-builder --win"
+},
+
+
+
+  "build": {
+    "appId": "com.eacalahorra.microgravity",
+    "productName": "microGravity",
+    "files": [
+      "src/**/*",
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "src/icon/microgravity.ico"
+    }
+  },
+
   "devDependencies": {
     "electron": "^38.4.0",
+    "electron-builder": "^24.0.0",
     "esbuild": "^0.25.11"
   },
   "dependencies": {
