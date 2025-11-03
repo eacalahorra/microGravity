@@ -20,6 +20,8 @@ function addCss (href) {
 
 addCss('./vendor/katex.min.css');
 
+const { ipcRenderer } = require('electron');
+
 const md = unified()
 .use(remarkParse)
 .use(remarkGfm)
@@ -51,10 +53,25 @@ const btnNotes  = document.getElementById('btnNotes');
 const notesOverlay = document.getElementById('notesOverlay');
 const notesClose = document.getElementById('notesClose');
 const notesArea = document.getElementById('notesArea');
+const titleEl = document.querySelector('.title');
+const fileDropdown = document.getElementById('fileDropdown');
+const fileMenuBtn  = document.getElementById('fileMenu');
+const fileBtn      = document.getElementById('fileMenuBtn');
+const btnNew       = document.getElementById('fileNew');
+const btnOpen      = document.getElementById('fileOpen');
+const btnSave      = document.getElementById('fileSave');
+const btnSaveAs    = document.getElementById('fileSaveAs');
+const btnExport    = document.getElementById('fileExport');
+const typeBtn = document.getElementById('typeBtn');
 
 
 let theme = localStorage.getItem('mg.theme') || 'light';
 let view = localStorage.getItem('mg.view') || 'sourceOnly';
+let currentFilePath = null;
+let isDirty = false;
+let isSyncingEditor = false;
+let isSyncingPreview = false;
+let typewriterEnabled = localStorage.getItem('mg.typewriter') === 'true'; //INOP
 
 function applyTheme() {
     body.classList.remove('light', 'dark');
@@ -174,8 +191,6 @@ viewBtn.addEventListener('click', () => {
     applyView();
 });
 
-const titleEl = document.querySelector('.title');
-
 function updateTitleFromContent() {
     const lines = editor.value.split('\n');
 
@@ -289,7 +304,177 @@ function wrapBlock(mark) {
     };
 }
 
+function applyTypewriterState() { // INOP
+  if (typewriterEnabled) {
+    typeBtn.classList.add('active');
+    typeBtn.textContent = 'Typewriter ✓';
+    const halfViewport = editor.clientHeight / 2;
+    editor.style.paddingBottom = `${halfViewport}px`;
+    centerCursor();
+  } else {
+    typeBtn.classList.remove('active');
+    typeBtn.textContent = 'Typewriter';
+    editor.style.paddingBottom = ''; 
+  }
+  localStorage.setItem('mg.typewriter', typewriterEnabled);
+}
+
+typeBtn.addEventListener('click', () => { //INOP
+  typewriterEnabled = !typewriterEnabled;
+  applyTypewriterState();
+  if (typewriterEnabled) centerCursor();
+});
+
+function centerCursor() { //INOP
+  if (!typewriterEnabled) return;
+
+  const computedStyle = window.getComputedStyle(editor);
+  const lineHeight = parseFloat(computedStyle.lineHeight);
+  
+  
+  const halfViewport = editor.clientHeight / 2;
+  const existingPaddingBottom = parseInt(computedStyle.paddingBottom) || 18;
+  
+  editor.style.paddingBottom = `${halfViewport + existingPaddingBottom}px`;
+  
+  editor.offsetHeight;
+  
+  const selectionStart = editor.selectionStart || 0;
+  const beforeCursor = editor.value.slice(0, selectionStart);
+  const lineCount = beforeCursor.split('\n').length - 1;
+
+  const cursorPos = lineCount * lineHeight;
+  const centerOffset = halfViewport - (lineHeight / 2);
+  const targetScroll = cursorPos - centerOffset;
+
+  const newScrollTop = Math.max(0, targetScroll);
+
+  isSyncingEditor = true;
+  editor.scrollTop = newScrollTop;
+  setTimeout(() => { isSyncingEditor = false; }, 100);
+}
+
+['input', 'click', 'keyup'].forEach(ev => {
+  editor.addEventListener(ev, () => {
+    if (typewriterEnabled) {
+      clearTimeout(editor._typeDelay);
+      editor._typeDelay = setTimeout(centerCursor, 50);
+    }
+  });
+});
+
+function baseName(p) {
+    if (!p) return null;
+    const i = Math.max(p.lastIndexOf('/'), p.lastIndexOf('\\'));
+    return i >= 0 ? p.slice(i + 1) : p;
+}
+
+function refreshTitles() {
+    const star = isDirty ? '*' : '';
+    const fileName = baseName(currentFilePath);
+    let display = fileName || (() => {
+        const line = editor.value.split('\n').find(l => /^#\s+/.test(l.trim()));
+        return line ? line.replace(/^#\s+/, '') + '.md' : 'untitled.md';
+    })();
+
+    titleEl.textContent = `${star}${display}`;
+    document.title = `${star}${display} - microGravity`
+}
+
+function markDirty(flag = true) {
+    isDirty = flag,
+    refreshTitles();
+}
+
+async function exportPdf() {
+    const html = preview.innerHTML;
+    const title = (baseName(currentFilePath) || 'document').replace(/\.md$/i, '');
+    await ipcRenderer.invoke('file:exportPdf', { html, theme, title });
+}
+
+async function newFile() {
+    if (isDirty) {
+        const ok = confirm('Discard unsaved changes? If not, please save this file before starting a new one!')
+        if (!ok) return;
+    }
+    editor.value = '';
+    currentFilePath = null;
+    markDirty(false);
+    updateWordCount(); updateCursorPos();
+    renderPreviewDebounced();
+}
+
+async function openFile() {
+    if (isDirty) {
+        const ok = confirm('Discard unsaved changes? If not, please save this file before starting a new one!')
+        if (!ok) return;
+    }
+    const res = await ipcRenderer.invoke('file:open')
+    if (!res) return;
+    editor.value = res.content ?? '';
+    currentFilePath = res.path ?? null
+    markDirty(false);
+    updateWordCount(); updateCursorPos(); updateTitleFromContent();
+    renderPreviewDebounced();
+}
+
+async function saveFile() {
+  if (currentFilePath) {
+    await ipcRenderer.invoke('file:save', { path: currentFilePath, content: editor.value });
+    markDirty(false);
+  } else {
+    await saveAsFile();
+  }
+}
+
+async function saveAsFile() {
+  const suggested = (baseName(currentFilePath) || 'untitled.md');
+  const res = await ipcRenderer.invoke('file:saveAs', { content: editor.value, suggestedName: suggested });
+  if (!res) return;
+  currentFilePath = res.path;
+  markDirty(false);
+}
+
+function handleKeydown(e) {
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+
+  if (e.key.toLowerCase() === 's' && e.shiftKey) {
+    e.preventDefault(); saveAsFile(); return;
+  }
+  switch (e.key.toLowerCase()) {
+    case 'n': e.preventDefault(); newFile(); break;
+    case 'o': e.preventDefault(); openFile(); break;
+    case 's': e.preventDefault(); saveFile(); break;
+    case 'p': e.preventDefault(); exportPdf(); break;
+  }
+}
+window.addEventListener('keydown', handleKeydown);
+
+(function setupDropdown(){
+  const root = document.getElementById('fileDropdown');
+  const trigger = document.getElementById('fileMenuBtn');
+  const menu = document.getElementById('fileMenu');
+
+  function open()  { root.setAttribute('data-open', 'true'); }
+  function close() { root.removeAttribute('data-open'); }
+
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (root.getAttribute('data-open') === 'true') close(); else open();
+  });
+  document.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  btnNew?.addEventListener('click',  () => { close(); newFile(); });
+  btnOpen?.addEventListener('click', () => { close(); openFile(); });
+  btnSave?.addEventListener('click', () => { close(); saveFile(); });
+  btnSaveAs?.addEventListener('click', () => { close(); saveAsFile(); });
+  btnExport?.addEventListener('click', () => { close(); exportPdf(); });
+})();
+
 let sessionNotes = '';
+
 
 btnBold?.addEventListener('click',  () => withSelection(wrapInline('**')));
 btnItalic?.addEventListener('click',() => withSelection(wrapInline('*')));
@@ -334,16 +519,33 @@ notesOverlay.addEventListener('keydown', (e) => {
 
 
 editor.addEventListener('input', () => {
-    updateWordCount(); 
-    updateCursorPos(); 
-    if (typeof updateTitleFromContent === 'function') updateTitleFromContent();
-    renderPreviewDebounced(); 
+  markDirty(true);
+  updateWordCount();
+  updateCursorPos();
+  updateTitleFromContent?.();
+  renderPreviewDebounced();
 });
 editor.addEventListener('keyup', updateCursorPos);
 editor.addEventListener('click', updateCursorPos);
+editor.addEventListener('scroll', () => {
+    if (isSyncingPreview || typewriterEnabled) return; // || typewriterEnabled is INOP
+    isSyncingEditor = true;
+    const ratio = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+    preview.scrollTop = ratio * (preview.scrollHeight - preview.clientHeight);
+    isSyncingEditor = false;
+});
+
+preview.addEventListener('scroll', () => {
+  if (isSyncingEditor) return;
+  isSyncingPreview = true;
+  const ratio = preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+  editor.scrollTop = ratio * (editor.scrollHeight - editor.clientHeight);
+  isSyncingPreview = false;
+});
 
 applyTheme();
 applyView();
+applyTypewriterState(); //INOP
 updateWordCount();
 updateCursorPos();
 renderPreview();

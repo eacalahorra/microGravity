@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "dev": "electron .",
-    "bundle": "esbuild src/js/renderer.js --bundle --platform=browser --format=esm --outfile=src/js/renderer.bundle.js"
+    "bundle": "esbuild src/js/renderer.js --bundle --platform=browser --format=esm --external:electron --outfile=src/js/renderer.bundle.js"
   },
   "author": "eacalahorra",
   "license": "GPL-3.0-or-later",

@@ -29,9 +29,24 @@
         </div>
         
         <div class="actions">
+            <div class="dropdown" id="fileDropdown">
+                <button id="fileMenuBtn" class="dropdown-trigger" title="File Menu">File ▾</button>
+                <div class="dropdown-menu" id="fileMenu" role="menu" aria-label="File">
+                    <button id="fileNew"    role="menuitem">New <span class="k">Ctrl+N</span></button>
+                    <button id="fileOpen"   role="menuitem">Open… <span class="k">Ctrl+O</span></button>
+                    <hr>
+                    <button id="fileSave"   role="menuitem">Save <span class="k">Ctrl+S</span></button>
+                    <button id="fileSaveAs" role="menuitem">Save As… <span class="k">Shift+Ctrl+S</span></button>
+                    <hr>
+                    <button id="fileExport" role="menuitem">Export PDF (Rich Text) <span class="k">Ctrl+P</span></button>
+                </div>
+            </div>
+
             <button id="themeBtn" title="Toggle theme">Theme</button>
             <button id="viewBtn" title="Toggle view">View</button>
             <button id="btnNotes"    title="Session notes (no save)">Notes</button>
+           <!-- <button id="typeBtn"  title="Toggle typewriter mode">Typewriter Mode</button>  UNTIL TYPEWRITER MODE BEHAVES THE BUTTON IS A COMMENT-->
+
         </div>
 
     </div>
