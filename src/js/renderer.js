@@ -319,11 +319,11 @@ function applyTypewriterState() { // INOP
   localStorage.setItem('mg.typewriter', typewriterEnabled);
 }
 
-typeBtn.addEventListener('click', () => { //INOP
-  typewriterEnabled = !typewriterEnabled;
-  applyTypewriterState();
-  if (typewriterEnabled) centerCursor();
-});
+// typeBtn.addEventListener('click', () => { //INOP
+  //typewriterEnabled = !typewriterEnabled;
+ // applyTypewriterState();
+ // if (typewriterEnabled) centerCursor();
+// });
 
 function centerCursor() { //INOP
   if (!typewriterEnabled) return;
@@ -463,8 +463,15 @@ window.addEventListener('keydown', handleKeydown);
     e.stopPropagation();
     if (root.getAttribute('data-open') === 'true') close(); else open();
   });
+  
   document.addEventListener('click', close);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  const btnNew = document.getElementById('fileNew');
+  const btnOpen = document.getElementById('fileOpen');
+  const btnSave = document.getElementById('fileSave');
+  const btnSaveAs = document.getElementById('fileSaveAs');
+  const btnExport = document.getElementById('fileExport');
 
   btnNew?.addEventListener('click',  () => { close(); newFile(); });
   btnOpen?.addEventListener('click', () => { close(); openFile(); });

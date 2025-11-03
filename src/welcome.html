@@ -2,32 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Welcome to microGravity! v0.0.1α</title>
 <link rel="stylesheet" href="./styles/base.css">
 <style>
+  
+  * {
+    box-sizing: border-box;
+  }
+
   html, body {
     margin: 0;
     height: 100%;
     width: 100%;
-    overflow: hidden;
     font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: #e9ecf1;
     background: url('./images/mGravity.jpg') center center / cover no-repeat fixed;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+ 
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: -1;
   }
 
   .card {
-    position: relative;
-    width: min(720px, 90%);
-    background: var(--panel);
-    color: var(--text);
+    width: min(720px, 92%);
+    background: rgba(24, 28, 33, 0.82);
+    color: #f5f7fa;
     border-radius: 20px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     padding: 48px 56px 64px 56px;
+    margin: 80px 0 100px;
     text-align: left;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    position: relative;
   }
 
   .banner {
@@ -38,44 +56,56 @@
     background: #FFD84C;
     color: #000;
     padding: 6px 60px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1px;
     font-size: 13px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
   }
 
   h1 {
     margin-top: 0;
-    margin-bottom: 0.2em;
-    font-size: 2em;
+    margin-bottom: 0.25em;
+    font-size: 2.1em;
     font-weight: 500;
   }
-  h1 strong { color: #1d4ed8; }
+  h1 strong {
+    color: #3b82f6;
+  }
+
   h2 {
     font-style: italic;
     font-weight: 500;
     font-size: 1.25em;
     margin-top: 0;
-    margin-bottom: 1.2em;
+    margin-bottom: 1.4em;
+    color: #bfc7d1;
   }
 
   h3 {
     font-weight: 600;
     text-align: center;
-    margin-bottom: 1em;
+    margin: 1.5em 0 1em;
+    color: #f8fafc;
   }
 
   ul {
     margin: 0 auto;
     padding-left: 1.2em;
-    line-height: 1.6;
+    line-height: 1.7;
+    color: #d6dbe2;
   }
 
-  li { margin-bottom: 0.3em; }
+  li {
+    margin-bottom: 0.4em;
+  }
 
   .actions {
     text-align: center;
-    margin-top: 2.5em;
+    margin-top: 3em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
   }
 
   .actions button {
@@ -83,21 +113,61 @@
     color: white;
     border: none;
     border-radius: 9999px;
-    padding: 10px 36px;
+    padding: 12px 40px;
     font-size: 1em;
+    font-weight: 500;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.25s ease, transform 0.2s ease;
   }
 
-  .actions button:hover { background: #4b4efb; }
+  .actions button:hover {
+    background: #4b4efb;
+    transform: translateY(-1px);
+  }
 
   label {
     display: block;
     text-align: center;
     font-size: 0.8em;
-    color: var(--muted);
-    margin-top: 10px;
+    color: #a7b0ba;
+    margin-top: 12px;
+    user-select: none;
   }
+
+  input[type="checkbox"] {
+    transform: scale(1.1);
+    accent-color: #3b82f6;
+  }
+
+  /* smooth fade-in effect */
+  body {
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  .credits {
+  margin-top: 16px;
+  font-size: 0.8em;
+  color: #9ca3af; /* soft grey */
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+.credits a {
+  color: #9ca3af;
+  text-decoration: none;
+}
+
+.credits a:hover {
+  color: #d1d5db;
+  text-decoration: underline;
+}
+
 </style>
 </head>
 <body>
@@ -107,36 +177,41 @@
     <h1>Welcome to <strong>microGravity</strong>! v0.0.1<sup>alpha</sup></h1>
     <h2>Title: “Minimum Viable Product”</h2>
 
-    <h3>Main Features in v0.0.1alpha</h3>
+    <h3>Main Features in v0.0.1α</h3>
 
     <ul>
-      <li>File Management - Create, open, save, and save-as functionality</li>
-      <li>PDF Export - Export rendered, rich-text markdown documents to PDF</li>
-      <li>Live Preview - Real-time markdown rendering with split-view support</li>
-      <li>Scroll Sync - Editor and preview panes scroll in sync</li>
-      <li>Formatting Toolbar - Quick buttons for bold, italic, headings (H1-H3), lists, quotes, code blocks, and links</li>
-      <li>Markdown Support - GitHub Flavored Markdown, LaTeX math equations, syntax highlighting, and Mermaid diagrams</li>
-      <li>Session Notes - Temporary note-taking overlay that doesn’t save to file</li>
-      <li>Three View Modes - Source-only, split-view, and preview-only</li>
-      <li>Theme Support - Light and dark themes with persistent storage</li>
-      <li>Status Bar - Live word count and cursor position tracking</li>
-      <li>Auto-Title Detection - Automatically pulls document title from first H1 heading</li>
-      <li><strong>Missing:</strong> UI/UX in any capacity</li>
+      <li><strong>File Management:</strong> Create, open, save, and save-as functionality</li>
+      <li><strong>PDF Export:</strong> Export rendered rich-text markdown documents to PDF</li>
+      <li><strong>Live Preview:</strong> Real-time markdown rendering with split-view support</li>
+      <li><strong>Scroll Sync:</strong> Editor and preview panes scroll in sync</li>
+      <li><strong>Formatting Toolbar:</strong> Bold, italic, headings, lists, quotes, code blocks, links</li>
+      <li><strong>Markdown Support:</strong> GFM, LaTeX, GitHub Flavoured syntax highlighting, Mermaid diagrams</li>
+      <li><strong>Session Notes:</strong> Temporary overlay that isn’t saved</li>
+      <li><strong>View Modes:</strong> Source-only, split-view, and preview-only</li>
+      <li><strong>Theme Support:</strong> Light/dark with persistent storage</li>
+      <li><strong>Status Bar:</strong> Live word count & cursor tracking</li>
+      <li><strong>Auto-Title Detection:</strong> Uses first H1 as filename</li>
+      <li><strong>Missing:</strong> UI/UX in its entirety</li>
     </ul>
 
-    <div class="actions">
-      <button id="continueBtn">CONTINUE</button>
-      <label><input type="checkbox" id="dontShow"> Do not show again</label>
-    </div>
-  </div>
+  <div class="actions">
+  <button id="continueBtn">CONTINUE</button>
+  <label><input type="checkbox" id="dontShow"> Don’t show again</label>
+  <p class="credits">
+    Developed by <strong>eacalahorra</strong> — 2025 — GPLv3+ —
+    <a href="https://github.com/eacalahorra/microGravity" target="_blank">
+      GitHub
+    </a>
+  </p>
+</div>
+
 
   <script>
     const { ipcRenderer } = require('electron');
     const btn = document.getElementById('continueBtn');
     const chk = document.getElementById('dontShow');
     btn.addEventListener('click', () => {
-      if (chk.checked) localStorage.setItem('mg.welcome_v0.0.1', 'true');
-      ipcRenderer.send('welcome:close');
+      ipcRenderer.send('welcome:close', chk.checked);
     });
   </script>
 </body>

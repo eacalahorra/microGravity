@@ -48,7 +48,7 @@ function createWelcomeWindow() {
 app.whenReady().then(() => {
   const storePath = path.join(app.getPath("userData"), "mg-settings.json");
   let hasSeenWelcome = false;
-
+  
   try {
     if (fs.existsSync(storePath)) {
       const data = JSON.parse(fs.readFileSync(storePath, "utf-8"));
@@ -57,17 +57,32 @@ app.whenReady().then(() => {
   } catch (err) {
     console.warn("Could not read mg-settings.json:", err);
   }
-
+  
   if (!hasSeenWelcome) {
     createWelcomeWindow();
+  } else {
+    createMainWindow();
+  }
+});
+
+
+ipcMain.on("welcome:close", (event, dontShowAgain) => {
+  if (welcomeWin) {
+    welcomeWin.close();
+    welcomeWin = null;
+  }
+  
+  
+  if (dontShowAgain) {
     try {
+      const storePath = path.join(app.getPath("userData"), "mg-settings.json");
       fs.writeFileSync(storePath, JSON.stringify({ welcome_v0_0_1: true }, null, 2));
     } catch (err) {
       console.warn("Failed to save settings:", err);
     }
-  } else {
-    createMainWindow();
   }
+  
+  createMainWindow();
 });
 
 app.on("window-all-closed", () => {
@@ -79,7 +94,8 @@ app.on("activate", () => {
 });
 
 ipcMain.handle("file:open", async () => {
-    const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+    const targetWin = win || welcomeWin;
+    const { canceled, filePaths } = await dialog.showOpenDialog(targetWin, {
         title: "Open Markdown",
         filters: [{ name: "Markdown", extensions: ["md", "markdown", "txt"]}],
         properties: ["openFile"]
@@ -98,7 +114,8 @@ ipcMain.handle("file:save", async (_e, { path: filePath, content }) => {
 });
 
 ipcMain.handle("file:saveAs", async (_e, { content, suggestedName }) => {
-  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+  const targetWin = win || welcomeWin;
+  const { canceled, filePath } = await dialog.showSaveDialog(targetWin, {
     title: "Save As",
     defaultPath: suggestedName || "untitled.md",
     filters: [{ name: "Markdown", extensions: ["md"] }]
@@ -109,7 +126,8 @@ ipcMain.handle("file:saveAs", async (_e, { content, suggestedName }) => {
 });
 
 ipcMain.handle("file:exportPdf", async (_e, { html, theme, title}) => {
-    const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    const targetWin = win || welcomeWin;
+    const { canceled, filePath } = await dialog.showSaveDialog(targetWin, {
         title: "Export PDF",
         defaultPath: (title || "untitled") + ".pdf",
         filters: [{ name: "PDF", extensions: ["pdf"] }]
@@ -124,7 +142,6 @@ ipcMain.handle("file:exportPdf", async (_e, { html, theme, title}) => {
             offscreen: true
         }
     });
-
 
 const cssRel = (p) => "file://" + path.join(__dirname, "src", p).replace(/\\/g, "/");
 const htmlDoc = `
@@ -153,7 +170,7 @@ const htmlDoc = `
 
   await pdfWin.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(htmlDoc));
   const pdf = await pdfWin.webContents.printToPDF({
-    marginsType: 1,          // default
+    marginsType: 1,
     printBackground: true,
     pageSize: "A4",
     preferCSSPageSize: true
@@ -163,27 +180,3 @@ const htmlDoc = `
   pdfWin.destroy();
   return { path: filePath };
 });
-
-ipcMain.on("welcome:close", () => {
-    if (welcomeWin) {
-        welcomeWin.close();
-        welcomeWin = null;
-    }
-    createMainWindow();
-})
-
-function createWelcomeWindow() {
-  welcomeWin = new BrowserWindow({
-    width: 1024,
-    height: 576,
-    resizable: false,
-    maximizable: false,
-    title: "Welcome to microGravity",
-    backgroundColor: "#000000",
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false
-    }
-  });
-  welcomeWin.loadFile(path.join(__dirname, "src", "welcome.html"));
-}
