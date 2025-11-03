@@ -1,6 +1,7 @@
 # Welcome to microGravity.
 ---
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Latest Release](https://img.shields.io/github/v/release/eacalahorra/microGravity)](https://github.com/eacalahorra/microGravity/releases/latest)
 ### This project is licensed under GPL v3.0 or any later license version. 
 
 
